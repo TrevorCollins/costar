@@ -1,103 +1,157 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useCallback } from 'react';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import SearchBox, { SearchBoxOption } from '../components/SearchBox';
+
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
+	let timer: NodeJS.Timeout;
+	return (...args: Parameters<T>) => {
+		clearTimeout(timer);
+		timer = setTimeout(() => fn(...args), delay);
+	};
+}
+
+async function fetchPersonSuggestions(query: string) {
+	if (!query) return [];
+	const res = await fetch(
+		`/api/tmdb/search-person?query=${encodeURIComponent(query)}`
+	);
+	if (!res.ok) return [];
+	const data = await res.json();
+	// Sort by popularity descending and filter out invalid ids
+	const sorted = (data.results || [])
+		.filter(
+			(person: any) =>
+				person.id !== null && person.id !== undefined && person.id !== 0
+		)
+		.sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0));
+	return sorted;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+	// State for person 1
+	const [person1, setPerson1] = useState<SearchBoxOption | undefined>(
+		undefined
+	);
+	const [person1Input, setPerson1Input] = useState('');
+	const [person1Options, setPerson1Options] = useState<SearchBoxOption[]>([]);
+	const [person1Loading, setPerson1Loading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	// State for person 2
+	const [person2, setPerson2] = useState<SearchBoxOption | undefined>(
+		undefined
+	);
+	const [person2Input, setPerson2Input] = useState('');
+	const [person2Options, setPerson2Options] = useState<SearchBoxOption[]>([]);
+	const [person2Loading, setPerson2Loading] = useState(false);
+
+	// Debounced search for person 1
+	const debouncedSearch1 = useCallback(
+		debounce(async (input: string) => {
+			if (!input) {
+				setPerson1Options([]);
+				setPerson1Loading(false);
+				return;
+			}
+			setPerson1Loading(true);
+			try {
+				const results = await fetchPersonSuggestions(input);
+				setPerson1Options(
+					results.map((person: any) => ({
+						label: person.name,
+						value: person.id,
+						...person,
+					}))
+				);
+			} finally {
+				setPerson1Loading(false);
+			}
+		}, 400),
+		[]
+	);
+
+	// Debounced search for person 2
+	const debouncedSearch2 = useCallback(
+		debounce(async (input: string) => {
+			if (!input) {
+				setPerson2Options([]);
+				setPerson2Loading(false);
+				return;
+			}
+			setPerson2Loading(true);
+			try {
+				const results = await fetchPersonSuggestions(input);
+				setPerson2Options(
+					results.map((person: any) => ({
+						label: person.name,
+						value: person.id,
+						...person,
+					}))
+				);
+			} finally {
+				setPerson2Loading(false);
+			}
+		}, 400),
+		[]
+	);
+
+	// Handlers for input change
+	const handlePerson1InputChange = (input: string) => {
+		setPerson1Input(input);
+		debouncedSearch1(input);
+	};
+	const handlePerson2InputChange = (input: string) => {
+		setPerson2Input(input);
+		debouncedSearch2(input);
+	};
+
+	return (
+		<Container
+			maxWidth='sm'
+			sx={{
+				minHeight: '100vh',
+				display: 'flex',
+				flexDirection: 'column',
+				justifyContent: 'center',
+			}}
+		>
+			<Box py={4}>
+				<Typography variant='h3' align='center' gutterBottom fontWeight={700}>
+					Costar
+				</Typography>
+				<Stack spacing={3} mt={4}>
+					<SearchBox
+						label='Search for Person 1'
+						value={person1}
+						options={person1Options}
+						loading={person1Loading}
+						onChange={setPerson1}
+						onInputChange={handlePerson1InputChange}
+						onClear={() => {
+							setPerson1(undefined);
+							setPerson1Input('');
+							setPerson1Options([]);
+						}}
+					/>
+					<SearchBox
+						label='Search for Person 2'
+						value={person2}
+						options={person2Options}
+						loading={person2Loading}
+						onChange={setPerson2}
+						onInputChange={handlePerson2InputChange}
+						onClear={() => {
+							setPerson2(undefined);
+							setPerson2Input('');
+							setPerson2Options([]);
+						}}
+					/>
+				</Stack>
+			</Box>
+		</Container>
+	);
 }
