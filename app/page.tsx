@@ -34,17 +34,13 @@ async function fetchPersonSuggestions(query: string) {
 
 export default function Home() {
 	// State for person 1
-	const [person1, setPerson1] = useState<SearchBoxOption | undefined>(
-		undefined
-	);
+	const [person1, setPerson1] = useState<SearchBoxOption | null>(null);
 	const [person1Input, setPerson1Input] = useState('');
 	const [person1Options, setPerson1Options] = useState<SearchBoxOption[]>([]);
 	const [person1Loading, setPerson1Loading] = useState(false);
 
 	// State for person 2
-	const [person2, setPerson2] = useState<SearchBoxOption | undefined>(
-		undefined
-	);
+	const [person2, setPerson2] = useState<SearchBoxOption | null>(null);
 	const [person2Input, setPerson2Input] = useState('');
 	const [person2Options, setPerson2Options] = useState<SearchBoxOption[]>([]);
 	const [person2Loading, setPerson2Loading] = useState(false);
@@ -129,26 +125,16 @@ export default function Home() {
 						value={person1}
 						options={person1Options}
 						loading={person1Loading}
-						onChange={setPerson1}
-						onInputChange={handlePerson1InputChange}
-						onClear={() => {
-							setPerson1(undefined);
-							setPerson1Input('');
-							setPerson1Options([]);
-						}}
+						handleChange={setPerson1}
+						handleInputChange={handlePerson1InputChange}
 					/>
 					<SearchBox
 						label='Search for Person 2'
 						value={person2}
 						options={person2Options}
 						loading={person2Loading}
-						onChange={setPerson2}
-						onInputChange={handlePerson2InputChange}
-						onClear={() => {
-							setPerson2(undefined);
-							setPerson2Input('');
-							setPerson2Options([]);
-						}}
+						handleChange={setPerson2}
+						handleInputChange={handlePerson2InputChange}
 					/>
 				</Stack>
 			</Box>

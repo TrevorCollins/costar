@@ -13,12 +13,11 @@ export interface SearchBoxOption {
 
 interface SearchBoxProps {
 	label: string;
-	value: SearchBoxOption | undefined;
+	value: SearchBoxOption | null;
 	options: SearchBoxOption[];
 	loading?: boolean;
-	onChange: (value: SearchBoxOption | undefined) => void;
-	onInputChange: (input: string) => void;
-	onClear: () => void;
+	handleChange: (value: SearchBoxOption | null) => void;
+	handleInputChange: (input: string) => void;
 }
 
 const SearchBox: React.FC<SearchBoxProps> = ({
@@ -26,9 +25,8 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 	value,
 	options,
 	loading = false,
-	onChange,
-	onInputChange,
-	onClear,
+	handleChange,
+	handleInputChange,
 }) => {
 	return (
 		<Autocomplete
@@ -36,13 +34,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 			options={options}
 			loading={loading}
 			getOptionLabel={option => option.label}
-			onChange={(_, newValue) => onChange(newValue)}
+			onChange={(_, newValue) => handleChange(newValue)}
 			onInputChange={(_, newInput) => {
 				// Only trigger search if input is at least 3 characters
 				if (newInput.length >= 3 || newInput.length === 0) {
-					onInputChange(newInput);
+					handleInputChange(newInput);
 				} else {
-					onInputChange('');
+					handleInputChange('');
 				}
 			}}
 			isOptionEqualToValue={(option, val) => option.value === val.value}
@@ -52,33 +50,10 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 				</li>
 			)}
 			renderInput={params => (
-				<TextField
-					{...params}
-					label={label}
-					variant='outlined'
-					InputProps={{
-						...params.InputProps,
-						endAdornment: (
-							<InputAdornment position='end'>
-								{value ? (
-									<IconButton
-										aria-label='clear search'
-										onClick={onClear}
-										edge='end'
-										size='small'
-									>
-										<ClearIcon />
-									</IconButton>
-								) : null}
-								{params.InputProps.endAdornment && null}
-							</InputAdornment>
-						),
-					}}
-				/>
+				<TextField {...params} label={label} variant='outlined' />
 			)}
 			fullWidth
 			clearOnEscape
-			disableClearable
 		/>
 	);
 };
