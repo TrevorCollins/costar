@@ -13,10 +13,10 @@ export interface SearchBoxOption {
 
 interface SearchBoxProps {
 	label: string;
-	value: SearchBoxOption | null;
+	value: SearchBoxOption | undefined;
 	options: SearchBoxOption[];
 	loading?: boolean;
-	handleChange: (value: SearchBoxOption | null) => void;
+	handleChange: (value: SearchBoxOption | undefined) => void;
 	handleInputChange: (input: string) => void;
 }
 
@@ -34,7 +34,9 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 			options={options}
 			loading={loading}
 			getOptionLabel={option => option.label}
-			onChange={(_, newValue) => handleChange(newValue)}
+			onChange={(_, newValue) =>
+				handleChange(newValue === null ? undefined : newValue)
+			}
 			onInputChange={(_, newInput) => {
 				// Only trigger search if input is at least 3 characters
 				if (newInput.length >= 3 || newInput.length === 0) {
