@@ -9,6 +9,7 @@ if (!TMDB_API_KEY) {
 
 // Simple in-memory cache
 const personSearchCache = new Map<string, any>();
+const personCreditsCache = new Map<number, any>();
 
 export async function searchPeople(query: string) {
 	if (!query) return [];
@@ -25,5 +26,20 @@ export async function searchPeople(query: string) {
 	const response = await axios.get(url, { params });
 	const results = (response.data as any).results || [];
 	personSearchCache.set(cacheKey, results);
+	return results;
+}
+
+export async function getPersonCombinedCredits(personId: number) {
+	if (!personId) return [];
+	if (personCreditsCache.has(personId)) {
+		return personCreditsCache.get(personId);
+	}
+	const url = `${TMDB_BASE_URL}/person/${personId}/combined_credits`;
+	const params = {
+		api_key: TMDB_API_KEY,
+	};
+	const response = await axios.get(url, { params });
+	const results = (response.data as any).cast || [];
+	personCreditsCache.set(personId, results);
 	return results;
 }
