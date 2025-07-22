@@ -1,4 +1,10 @@
 import axios from 'axios';
+import type {
+	TMDBPerson,
+	TMDBCredit,
+	TMDBPersonSearchResult,
+	TMDBPersonCreditsResult,
+} from './tmdbTypes';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -8,14 +14,14 @@ if (!TMDB_API_KEY) {
 }
 
 // Simple in-memory cache
-const personSearchCache = new Map<string, any>();
-const personCreditsCache = new Map<number, any>();
+const personSearchCache = new Map<string, TMDBPerson[]>();
+const personCreditsCache = new Map<number, TMDBCredit[]>();
 
-export async function searchPeople(query: string) {
+export async function searchPeople(query: string): Promise<TMDBPerson[]> {
 	if (!query) return [];
 	const cacheKey = query.toLowerCase();
 	if (personSearchCache.has(cacheKey)) {
-		return personSearchCache.get(cacheKey);
+		return personSearchCache.get(cacheKey)!;
 	}
 	const url = `${TMDB_BASE_URL}/search/person`;
 	const params = {
@@ -24,22 +30,24 @@ export async function searchPeople(query: string) {
 		include_adult: false,
 	};
 	const response = await axios.get(url, { params });
-	const results = (response.data as any).results || [];
+	const results = (response.data as TMDBPersonSearchResult).results || [];
 	personSearchCache.set(cacheKey, results);
 	return results;
 }
 
-export async function getPersonCombinedCredits(personId: number) {
+export async function getPersonCombinedCredits(
+	personId: number
+): Promise<TMDBCredit[]> {
 	if (!personId) return [];
 	if (personCreditsCache.has(personId)) {
-		return personCreditsCache.get(personId);
+		return personCreditsCache.get(personId)!;
 	}
 	const url = `${TMDB_BASE_URL}/person/${personId}/combined_credits`;
 	const params = {
 		api_key: TMDB_API_KEY,
 	};
 	const response = await axios.get(url, { params });
-	const results = (response.data as any).cast || [];
+	const results = (response.data as TMDBPersonCreditsResult).cast || [];
 	personCreditsCache.set(personId, results);
 	return results;
 }

@@ -18,7 +18,7 @@ export default function Home() {
 
 	return (
 		<Container
-			maxWidth='sm'
+			maxWidth='md'
 			sx={{
 				minHeight: '100vh',
 				display: 'flex',

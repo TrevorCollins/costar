@@ -1,19 +1,15 @@
-import React from 'react';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
-import ClearIcon from '@mui/icons-material/Clear';
+import { TMDBPerson } from '../lib/tmdbTypes';
+import PersonAvatar from './PersonAvatar';
 
-export interface SearchBoxOption {
+export interface SearchBoxOption extends TMDBPerson {
 	label: string;
 	value: string | number;
-	[key: string]: any;
 }
 
 interface SearchBoxProps {
 	label: string;
-	value: SearchBoxOption | undefined;
 	options: SearchBoxOption[];
 	loading?: boolean;
 	handleChange: (value: SearchBoxOption | undefined) => void;
@@ -22,7 +18,6 @@ interface SearchBoxProps {
 
 const SearchBox: React.FC<SearchBoxProps> = ({
 	label,
-	value,
 	options,
 	loading = false,
 	handleChange,
@@ -30,10 +25,11 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 }) => {
 	return (
 		<Autocomplete
-			value={value}
-			options={options}
+			options={options.sort((a, b) =>
+				a.known_for_department.localeCompare(b.known_for_department)
+			)}
 			loading={loading}
-			getOptionLabel={option => option.label}
+			groupBy={(option: SearchBoxOption) => option.known_for_department || ''}
 			onChange={(_, newValue) =>
 				handleChange(newValue === null ? undefined : newValue)
 			}
@@ -45,17 +41,35 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 					handleInputChange('');
 				}
 			}}
-			isOptionEqualToValue={(option, val) => option.value === val.value}
-			renderOption={(props, option) => (
-				<li {...props} key={option.value}>
-					{option.label}
-				</li>
-			)}
+			isOptionEqualToValue={(option: SearchBoxOption, val: SearchBoxOption) =>
+				option.value === val.value
+			}
+			renderOption={(props, option: SearchBoxOption) => {
+				const { key, ...optionProps } = props;
+				const keyLabel = `${key}_${props.id}`;
+				return (
+					<li
+						{...optionProps}
+						key={`${keyLabel}_list_item`}
+						style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+						role='option'
+						aria-label={option.label}
+					>
+						<PersonAvatar
+							key={`${keyLabel}_avatar`}
+							person={option}
+							size={28}
+						/>
+						<span key={`${keyLabel}_label`}>{option.label}</span>
+					</li>
+				);
+			}}
 			renderInput={params => (
-				<TextField {...params} label={label} variant='outlined' />
+				<TextField label={label} variant='outlined' {...params} />
 			)}
 			fullWidth
 			clearOnEscape
+			aria-label={label}
 		/>
 	);
 };
