@@ -4,6 +4,11 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { SearchBoxOption } from './SearchBox';
 import OverlapsGrid from './OverlapsGrid';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import { useState } from 'react';
 
 interface OverlapsSectionProps {
 	person1: SearchBoxOption | undefined;
@@ -14,10 +19,12 @@ export default function OverlapsSection({
 	person1,
 	person2,
 }: OverlapsSectionProps) {
-	const { overlaps, loading, error } = useOverlappingCredits(
+	const { overlaps, loading, error, sort, setSort } = useOverlappingCredits(
 		person1?.id,
-		person2?.id
+		person2?.id,
+		'popularity'
 	);
+
 	return (
 		<Box mt={6}>
 			{loading && (
@@ -32,9 +39,25 @@ export default function OverlapsSection({
 			)}
 			{!loading && !error && overlaps.length > 0 && (
 				<>
-					<Typography variant='h5' mt={4} mb={2} fontWeight={600}>
-						Overlapping Projects
-					</Typography>
+					<Box display='flex' alignItems='center' mb={2} gap={2}>
+						<Typography variant='h5' mt={4} mb={0} fontWeight={600}>
+							{overlaps.length} Overlapping Projects
+						</Typography>
+						<FormControl size='small' sx={{ minWidth: 160, mt: 4 }}>
+							<InputLabel id='sort-label'>Sort By</InputLabel>
+							<Select
+								labelId='sort-label'
+								value={sort}
+								label='Sort By'
+								onChange={e => setSort(e.target.value as any)}
+							>
+								<MenuItem value='popularity'>Popularity</MenuItem>
+								<MenuItem value='year_desc'>Year (Newest)</MenuItem>
+								<MenuItem value='year_asc'>Year (Oldest)</MenuItem>
+								<MenuItem value='title'>Title (A-Z)</MenuItem>
+							</Select>
+						</FormControl>
+					</Box>
 					<OverlapsGrid overlaps={overlaps} loading={loading} />
 				</>
 			)}

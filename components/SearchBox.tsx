@@ -33,6 +33,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 			onChange={(_, newValue) =>
 				handleChange(newValue === null ? undefined : newValue)
 			}
+			forcePopupIcon={false}
 			onInputChange={(_, newInput) => {
 				// Only trigger search if input is at least 3 characters
 				if (newInput.length >= 3 || newInput.length === 0) {

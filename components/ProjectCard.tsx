@@ -41,9 +41,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 				}}
 			>
 				<Typography variant='subtitle1' fontWeight={500}>
-					{project.id}
-				</Typography>
-				<Typography variant='subtitle1' fontWeight={500}>
 					{project.title || project.name}
 				</Typography>
 				<Typography variant='body2' color='text.secondary'>
